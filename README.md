@@ -1,4 +1,4 @@
-# MyCustomChatGPT
+# MyCustomChatGPT-POAssist
 
 
 OpenAI Platform with GitHub Codespace
