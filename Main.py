@@ -58,7 +58,8 @@ kernel = Kernel()
 chat_service = OpenAIChatCompletion(ai_model_id="gpt-4o-mini", api_key=os.getenv("OPENAI_API_KEY"))
 kernel.add_service(chat_service)
 
-agent = ChatCompletionAgent(service=chat_service, name="PO_Assistant", instructions="You are a purchase order assistant.")
+agent = ChatCompletionAgent(service=chat_service, name="PO_Assistant", instructions="You are a purchase order expert.")
+agent2 = ChatCompletionAgent(service=chat_service, name="AI_Expert", instructions="You are a purchase order expert and AI expert. You generate the python code with streamlit AI to show  executive report from passing JSON data if available. No instruction or comment, only code. Replace existing code. Check for errors and fix it")
 
 '''
 External PO Process
@@ -77,6 +78,9 @@ def create_po(order_details):
     conn.commit()
     conn.close()
     print(order_details)
+    
+    
+    
     return f"PO created successfully. Here is the order details: {order_details}"
 
 # For DELETE: DELETE FROM table WHERE CONDITION
@@ -86,6 +90,7 @@ def create_po(order_details):
 '''
 Custom ChatGPT
 '''
+
 async def main():
     '''
     Functional Specification:
@@ -131,6 +136,10 @@ async def main():
             # GPT Conversation using Agent Framework
             response = await agent.get_response(messages=return_create_po)
             print("PO_Assistant:", response.content)
+            
+            response2 = await agent2.get_response(messages=return_create_po)
+            with open("streamlitai.py", "w", encoding="utf-8") as f:
+                f.write("\n" + str(response2) + "\n")
             
         else:
             
