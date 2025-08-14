@@ -22,6 +22,9 @@ from dotenv import load_dotenv
 from semantic_kernel import Kernel
 from semantic_kernel.connectors.ai.open_ai import OpenAIChatCompletion
 from semantic_kernel.agents import ChatCompletionAgent
+from langchain_openai import OpenAI
+from langchain_community.utilities import SQLDatabase
+from langchain_experimental.sql import SQLDatabaseChain
 
 '''
 Configure External Services - SQLite Database
@@ -59,7 +62,21 @@ chat_service = OpenAIChatCompletion(ai_model_id="gpt-4o-mini", api_key=os.getenv
 kernel.add_service(chat_service)
 
 agent = ChatCompletionAgent(service=chat_service, name="PO_Assistant", instructions="You are a purchase order expert.")
-agent2 = ChatCompletionAgent(service=chat_service, name="AI_Expert", instructions="You are a purchase order expert and AI expert. You generate the python code with streamlit AI to show  executive report from passing JSON data if available. No instruction or comment, only code. Replace existing code. Check for errors and fix it")
+
+
+'''
+LangChain - SQL Database Connection (Database AI Expert)
+'''
+
+# Connect to local SQLite database
+db = SQLDatabase.from_uri("sqlite:///database.db")
+
+llm = OpenAI(temperature=0)
+db_chain = SQLDatabaseChain(llm=llm, database=db, verbose=True)
+
+
+
+
 
 '''
 External PO Process
@@ -137,15 +154,20 @@ async def main():
             response = await agent.get_response(messages=return_create_po)
             print("PO_Assistant:", response.content)
             
-            response2 = await agent2.get_response(messages=return_create_po)
-            with open("streamlitai.py", "w", encoding="utf-8") as f:
-                f.write("\n" + str(response2) + "\n")
+            
+            
+        elif "poquestion" in poassistant_userinput:
+            
+            # GPT Conversation using Agent Framework
+            
+            result = db_chain.run(poassistant_userinput)
+            print("PO_Assistant:", result)
             
         else:
             
             # GPT Conversation using Agent Framework
             response = await agent.get_response(messages=poassistant_userinput)
-            print("PO_Assistant:", response.content)
+            print("PO_Assistant:", response)
             
             
             
